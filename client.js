@@ -23,7 +23,9 @@ window.__ModuleLoader__.load({
     const { useState, useEffect, useCallback } = React;
 
     const ROUTE = '/dsh-destinywind-computer-user';
-    // 17 = 「记忆」(16) 之后。
+    // SECTION_ORDER 是跨插件协调值：本插件排在「记忆」插件（16）之后。
+    // 若两个插件都安装，顺序由双方此常量决定；若记忆插件未安装，17 只意味着
+    // 栏目前面留一个空档，无功能影响。新插件请选择互不冲突的值。
     const SECTION_ORDER = 17;
 
     async function api(path, init) {
