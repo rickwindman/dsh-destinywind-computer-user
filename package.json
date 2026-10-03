@@ -1,0 +1,42 @@
+{
+  "name": "dsh-destinywind-computer-user",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Computer Use：让 DSH 直接操作本机桌面（原生 Cua Driver SDK）。设置页提供权限分组开关；AI 使用未开启的权限时必须当场询问用户，且仅允许/拒绝二选、一次生效；永久开启只能由用户在设置页操作。",
+  "main": "lib/index.js",
+  "icon": "./icon.svg",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@trycua/cua-driver": "0.28.0"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  }
+}

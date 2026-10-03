@@ -1,0 +1,9 @@
+# dsh-destinywind-computer-user 安装补丁：注册 Computer Use（宿主半 + 浏览器半）。
+#
+# 必须用「包名」加载（而不是相对路径）：DSH 的 link-projection 模块解析
+# 只对包名加载生效，相对路径加载的文件无法解析宿主提供的包
+# （dsh-cua-native-enable 正是栽在这一点的 vendor 相对路径上）。
+- insert:
+    - id: destinywind-computer-user
+      name: dsh-destinywind-computer-user
+      config: {}
