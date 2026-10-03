@@ -1,8 +1,8 @@
 # dsh-destinywind-computer-user
 
 让 DSH 直接操作本机桌面（原生 [Cua Driver SDK](https://github.com/trycua/cua)），
-并在 Web 设置页提供「Computer Use」权限栏目 —— 每组权限一个开关，
-**永久开启只有用户在设置页操作这一条路**。
+并在 Web 设置页提供「Computer Use」栏目 —— 单一总开关「允许 AI 控制电脑」，
+结合会话权限分级门禁。
 
 ## 为什么重写（dsh-cua-native-enable 之死）
 
@@ -19,33 +19,32 @@
 - 不 import 任何未发布的 `@deepseek-ai/*` 官方包；
 - 直接向宿主 `tools` 服务注册工具，占 `computerUse` 独占 provider 槽。
 
-## 权限模型（硬性设计）
+## 权限模型 v2（单总开关 + 会话权限分级）
 
-| 规则 | 说明 |
+| 场景 | 行为 |
 | --- | --- |
-| 永久开关唯一入口 | Web 设置页「Computer Use」栏目，持久化到 `<DSH home>/destinywind-computer-user/permissions.json` |
-| AI 请求未开启权限 | 当场弹窗，只有「允许（仅本次）/ 拒绝」两个选项；允许不落任何状态，下次再问 |
-| 一次性允许 | 仅放行当前这一次调用，进程重启或再次调用都需要重新询问 |
-| 防绕过 · 进程内门禁 | 每次工具执行前强制检查权限（模型无法伪造弹窗结果） |
-| 防绕过 · 反向确认 | 修改权限的 HTTP POST 一律弹窗「是否本人操作」，AI 冒充设置页调用同样被拦 |
-| 防绕过 · HMAC 签名 | 权限文件带 HMAC-SHA256 签名，密钥只在 DSH 进程内存、每次启动随机；AI 篡改文件在本进程内不生效，重启后验签失败回落默认（观察开、其余全关） |
+| 总开关关 | 全部 56 个工具卸载（模型不可见）；竞态兜底调用直接拒绝 —— **任何情况下都不能操控电脑** |
+| 总开关开 + 完全权限会话（danger-full-access） | 直接放行，不弹窗 |
+| 总开关开 + 受限会话（workspace-write / read-only） | 每次控制电脑经 DSH 原生审批通道（`ctx.approval.request`）弹审批卡；「允许」仅放行这一次调用；无审批通道 fail closed 拒绝 |
 
-默认仅「观察（只读）」开启；鼠标键盘、剪贴板、窗口管理、浏览器、录制回放、
-会话提权、光标外观、配置写入全部默认关闭。
-
-SDK 未来新增的未归类工具自动落入「未归类」组，默认关闭 —— 新能力默认不可用。
+- 总开关 AI 也可以改（HTTP 直接落盘，不弹窗）：因为它不构成提权 —— AI 打开
+  开关后受限会话依然逐次弹审批，改开关拿不到任何额外能力。
+- 防绕过：门禁在工具 execute 进程内强制；权限文件带 HMAC-SHA256 签名
+  （密钥持久化于 `<DSH home>/destinywind-computer-user/secret.key`，重启后
+  用户设置保留；验签失败一律回落默认「关」）。
 
 ## HTTP API（设置页数据源）
 
-- `GET  /dsh-destinywind-computer-user/state` — 驱动状态 + 权限快照
-- `POST /dsh-destinywind-computer-user/permissions` — `{ group, enabled }`，
-  必须经真人反向确认才落盘
+- `GET  /dsh-destinywind-computer-user/state` — 总开关 + 驱动状态
+- `POST /dsh-destinywind-computer-user/permissions` — `{ enabled: true|false }`，
+  直接落盘（无需反向确认，见上）
 
 ## 已知边界（诚实声明）
 
-HMAC 签名防「篡改内容」，不防拥有本机管理员权限的进程；AI 删除权限文件会让
-插件回落默认全关（对 AI 无利）。本设计的目标是把「静默绕过」变成
-「必然弹窗或必然失效」，不是密码学对抗。
+HMAC 签名防「篡改内容」，不防拥有本机管理员权限的进程；完全权限的 AI 理论上
+可读密钥重签、也可直接改总开关 —— 但完全权限本身即用户授予的全权，且改开关
+在受限会话拿不到免弹窗能力。本设计的目标是：关=绝对禁止、开=受限会话逐次
+弹窗、完全权限=用户既有授权，不是密码学对抗。
 
 ## 安装
 

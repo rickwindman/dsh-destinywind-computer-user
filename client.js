@@ -1,9 +1,12 @@
 /**
- * Client half：Web 设置页「Computer Use」栏目。
+ * Client half：Web 设置页「Computer Use」栏目（v2：单总开关）。
  *
- * 展示驱动状态 + 各权限组开关。开关状态一律来自宿主 GET /dsh-destinywind-computer-user/state，
- * 修改一律 POST /dsh-destinywind-computer-user/permissions —— 宿主侧对每次修改都会
- * 反向弹窗确认"是否本人操作"，因此本页面不需要（也无法）提供绕过确认的路径。
+ * 只有一个开关「允许 AI 控制电脑」：
+ *   - 开：完全权限会话直接放行；受限会话（workspace-write / read-only）每次
+ *     控制电脑由宿主通过 DSH 原生审批卡向用户逐次请求。
+ *   - 关：任何情况下 AI 都不能操控电脑（工具整体卸载）。
+ * 开关状态来自宿主 GET /dsh-destinywind-computer-user/state，修改直接 POST
+ * /dsh-destinywind-computer-user/permissions（总开关不构成提权，无需反向确认）。
  *
  * 与 dsh-destinywind-memory 的 client.js 同模式：
  * 顶层调用 window.__ModuleLoader__.load({ id, factory(require) })，
@@ -19,18 +22,6 @@ window.__ModuleLoader__.load({
     const ROUTE = '/dsh-destinywind-computer-user';
     // 17 = 「记忆」(16) 之后。
     const SECTION_ORDER = 17;
-
-    const RISK_LABEL = {
-      low: '低风险',
-      medium: '中风险',
-      high: '高风险',
-    };
-
-    const RISK_STYLE = {
-      low: { color: '#1a7f37', background: 'rgba(26,127,55,0.12)' },
-      medium: { color: '#9a6700', background: 'rgba(154,103,0,0.12)' },
-      high: { color: '#cf222e', background: 'rgba(207,34,46,0.12)' },
-    };
 
     async function api(path, init) {
       const response = await fetch(`${ROUTE}${path}`, {
@@ -81,105 +72,9 @@ window.__ModuleLoader__.load({
       );
     }
 
-    function GroupCard({ group, busy, onToggle }) {
-      const [open, setOpen] = useState(false);
-      const risk = RISK_STYLE[group.risk] ?? RISK_STYLE.medium;
-      return React.createElement(
-        'div',
-        {
-          key: group.key,
-          style: {
-            border: '1px solid var(--dsh-border, #30363d)',
-            borderRadius: 8,
-            padding: '10px 12px',
-            marginBottom: 8,
-          },
-        },
-        React.createElement(
-          'div',
-          { style: { display: 'flex', alignItems: 'center', gap: 10 } },
-          React.createElement(Toggle, {
-            checked: group.enabled === true,
-            disabled: busy,
-            onChange: value => onToggle(group.key, value),
-          }),
-          React.createElement(
-            'div',
-            { style: { flex: 1, minWidth: 0 } },
-            React.createElement(
-              'div',
-              { style: { display: 'flex', alignItems: 'center', gap: 8 } },
-              React.createElement(
-                'span',
-                { style: { fontWeight: 600 } },
-                group.label,
-              ),
-              React.createElement(
-                'span',
-                {
-                  style: {
-                    fontSize: 11,
-                    padding: '1px 8px',
-                    borderRadius: 10,
-                    color: risk.color,
-                    background: risk.background,
-                  },
-                },
-                RISK_LABEL[group.risk] ?? group.risk,
-              ),
-              React.createElement(
-                'span',
-                { style: { fontSize: 12, opacity: 0.65 } },
-                `${group.tools.length} 个工具`,
-              ),
-            ),
-            React.createElement(
-              'div',
-              { style: { fontSize: 12, opacity: 0.7, marginTop: 2 } },
-              group.description,
-            ),
-          ),
-          React.createElement(
-            'button',
-            {
-              onClick: () => setOpen(!open),
-              style: {
-                border: 'none', background: 'transparent', cursor: 'pointer',
-                fontSize: 12, opacity: 0.6, flexShrink: 0,
-              },
-            },
-            open ? '收起 ▲' : '工具 ▼',
-          ),
-        ),
-        open && group.tools.length > 0
-          ? React.createElement(
-            'div',
-            { style: { marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 } },
-            group.tools.map(tool => React.createElement(
-              'code',
-              {
-                key: tool,
-                style: {
-                  fontSize: 11,
-                  padding: '2px 8px',
-                  borderRadius: 6,
-                  background: 'var(--dsh-surface, #161b22)',
-                  color: '#e6edf3',
-                  border: '1px solid var(--dsh-border, #30363d)',
-                  opacity: group.enabled ? 1 : 0.5,
-                },
-              },
-              `computer_use__${tool}`,
-            )),
-          )
-          : null,
-      );
-    }
-
     function ComputerUseSettingsPage() {
       const [snapshot, setSnapshot] = useState(null);
       const [error, setError] = useState('');
-      const [notice, setNotice] = useState('');
       const [busy, setBusy] = useState(false);
 
       const refresh = useCallback(async () => {
@@ -198,18 +93,15 @@ window.__ModuleLoader__.load({
         return () => clearInterval(timer);
       }, [refresh]);
 
-      const toggleGroup = useCallback(async (groupKey, value) => {
+      const toggleEnabled = useCallback(async (value) => {
         setBusy(true);
-        setNotice('');
+        setError('');
         try {
           await api('/permissions', {
             method: 'POST',
-            body: JSON.stringify({ group: groupKey, enabled: value }),
+            body: JSON.stringify({ enabled: value }),
           });
           await refresh();
-          setNotice(value
-            ? '已提交开启请求。注意：宿主会弹出确认框，需要你本人确认后才真正生效。'
-            : '已提交关闭请求。注意：宿主会弹出确认框，需要你本人确认后才真正生效。');
         } catch (err) {
           setError(String(err?.message ?? err));
           await refresh();
@@ -234,6 +126,7 @@ window.__ModuleLoader__.load({
         return React.createElement('div', { style: { padding: 12, opacity: 0.6 } }, '加载中…');
       }
 
+      const enabled = snapshot.enabled === true;
       const driver = snapshot.driver ?? {};
       return React.createElement(
         'div',
@@ -241,10 +134,46 @@ window.__ModuleLoader__.load({
         React.createElement(
           'div',
           { style: { marginBottom: 12, fontSize: 12, opacity: 0.75, lineHeight: 1.6 } },
-          'Computer Use 让 AI 直接操作本机桌面。权限组开关只有这里能永久生效；',
-          'AI 使用未开启的权限时会当场向你弹窗，仅「允许（仅本次）/拒绝」二选，允许不保存。',
-          '任何权限变更（包括来自本页面的）都会经宿主反向确认后才落盘。',
+          'Computer Use 让 AI 直接操作本机桌面。开启后：完全权限会话可直接执行；',
+          '受限权限（工作区读写 / 只读）会话每次控制电脑都会弹出审批卡向你逐次确认。',
+          '关闭后：AI 在任何情况下都不能操控电脑（工具整体卸载）。',
         ),
+        // 总开关卡片
+        React.createElement(
+          'div',
+          {
+            style: {
+              display: 'flex', alignItems: 'center', gap: 12,
+              border: '1px solid var(--dsh-border, #30363d)',
+              borderRadius: 8,
+              padding: '14px 16px',
+              marginBottom: 12,
+              background: enabled ? 'rgba(47,111,235,0.06)' : 'transparent',
+            },
+          },
+          React.createElement(Toggle, {
+            checked: enabled,
+            disabled: busy,
+            onChange: toggleEnabled,
+          }),
+          React.createElement(
+            'div',
+            { style: { flex: 1 } },
+            React.createElement(
+              'div',
+              { style: { fontWeight: 600, fontSize: 14 } },
+              '允许 AI 控制电脑',
+            ),
+            React.createElement(
+              'div',
+              { style: { fontSize: 12, opacity: 0.7, marginTop: 2 } },
+              enabled
+                ? '已开启：AI 可按会话权限使用桌面操作工具（受限会话逐次审批）。'
+                : '已关闭：AI 任何情况下都不能操控电脑。',
+            ),
+          ),
+        ),
+        // 驱动状态行
         React.createElement(
           'div',
           {
@@ -275,13 +204,6 @@ window.__ModuleLoader__.load({
             '刷新',
           ),
         ),
-        notice
-          ? React.createElement(
-            'div',
-            { style: { marginBottom: 12, padding: '8px 12px', borderRadius: 8, fontSize: 12, color: '#9a6700', background: 'rgba(154,103,0,0.12)' } },
-            notice,
-          )
-          : null,
         error
           ? React.createElement(
             'div',
@@ -289,16 +211,10 @@ window.__ModuleLoader__.load({
             error,
           )
           : null,
-        (snapshot.groups ?? []).map(group => React.createElement(GroupCard, {
-          key: group.key,
-          group,
-          busy,
-          onToggle: toggleGroup,
-        })),
         React.createElement(
           'div',
           { style: { marginTop: 12, fontSize: 11, opacity: 0.5, lineHeight: 1.6 } },
-          `权限状态持久化于 ${snapshot.file}（带进程内 HMAC 签名，外部篡改不生效）。`,
+          `开关状态持久化于 ${snapshot.file}（HMAC 签名，重启保留；篡改不生效）。`,
         ),
       );
     }

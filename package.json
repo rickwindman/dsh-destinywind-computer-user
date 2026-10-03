@@ -1,10 +1,10 @@
 {
   "name": "dsh-destinywind-computer-user",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "Computer Use：让 DSH 直接操作本机桌面（原生 Cua Driver SDK）。设置页提供权限分组开关；AI 使用未开启的权限时必须当场询问用户，且仅允许/拒绝二选、一次生效；永久开启只能由用户在设置页操作。",
+  "description": "Computer Use：让 DSH 直接操作本机桌面（原生 Cua Driver SDK）。设置页单总开关「允许 AI 控制电脑」：开=完全权限会话直接放行、受限会话逐次弹 DSH 原生审批卡；关=任何情况都不能操控电脑。",
   "main": "lib/index.js",
   "icon": "./icon.svg",
   "exports": {
