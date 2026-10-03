@@ -1,15 +1,18 @@
 /**
- * Client half：Web 设置页「Computer Use」栏目（v2：单总开关）。
+ * Client half：Web 设置页「Computer Use」栏目（v2.1：单总开关 + 真人开权）。
  *
  * 只有一个开关「允许 AI 控制电脑」：
  *   - 开：完全权限会话直接放行；受限会话（workspace-write / read-only）每次
  *     控制电脑由宿主通过 DSH 原生审批卡向用户逐次请求。
- *   - 关：任何情况下 AI 都不能操控电脑（工具整体卸载）。
- * 开关状态来自宿主 GET /dsh-destinywind-computer-user/state，修改直接 POST
- * /dsh-destinywind-computer-user/permissions（总开关不构成提权，无需反向确认）。
+ *     【v2.1】开启需要浏览器登录凭证（HttpOnly cookie），AI 调 HTTP 无法开启
+ *     （403）——只有真人（你）在设置页点击才能打开。
+ *   - 关：任何情况下 AI 都不能操控电脑（工具整体卸载）。AI 仍可自由关闭
+ *     （收权无风险，比如帮你紧急止损）。
+ * 开关状态来自宿主 GET /dsh-destinywind-computer-user/state，修改 POST
+ * /dsh-destinywind-computer-user/permissions。
  *
  * 与 dsh-destinywind-memory 的 client.js 同模式：
- * 顶层调用 window.__ModuleLoader__.load({ id, factory(require) })，
+ *顶层调用 window.__ModuleLoader__.load({ id, factory(require) })，
  * React 从 factory 的 require 参数获取；组件全部用 React.createElement。
  */
 
@@ -137,6 +140,8 @@ window.__ModuleLoader__.load({
           'Computer Use 让 AI 直接操作本机桌面。开启后：完全权限会话可直接执行；',
           '受限权限（工作区读写 / 只读）会话每次控制电脑都会弹出审批卡向你逐次确认。',
           '关闭后：AI 在任何情况下都不能操控电脑（工具整体卸载）。',
+          '开启只能由你在此页面完成（需要浏览器登录凭证，AI 无法自行开启）；',
+          'AI 仍可随时关闭开关（收权无风险）。',
         ),
         // 总开关卡片
         React.createElement(
@@ -169,7 +174,7 @@ window.__ModuleLoader__.load({
               { style: { fontSize: 12, opacity: 0.7, marginTop: 2 } },
               enabled
                 ? '已开启：AI 可按会话权限使用桌面操作工具（受限会话逐次审批）。'
-                : '已关闭：AI 任何情况下都不能操控电脑。',
+                : '已关闭：AI 任何情况下都不能操控电脑。只有你能在浏览器里开启此开关。',
             ),
           ),
         ),
