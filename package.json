@@ -1,10 +1,10 @@
 {
   "name": "dsh-destinywind-computer-user",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "Computer Use：让 DSH 直接操作本机桌面（原生 Cua Driver SDK）。设置页单总开关「允许 AI 控制电脑」：开=完全权限会话直接放行、受限会话逐次弹 DSH 原生审批卡；关=任何情况都不能操控电脑。开启需浏览器登录凭证（真人），AI 无法自行开启。",
+  "description": "控制电脑：让 DSH 直接操作本机桌面（原生 Cua Driver SDK）。设置页单总开关「允许 AI 控制电脑」：开=完全权限会话直接放行、受限会话逐次弹 DSH 原生审批卡；关=任何情况都不能操控电脑。开启需浏览器登录凭证（真人），AI 无法自行开启。",
   "main": "lib/index.js",
   "icon": "./icon.svg",
   "scripts": {
@@ -13,12 +13,15 @@
   "exports": {
     ".": "./lib/index.js",
     "./client": "./client.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
   },
   "files": [
     "lib/index.js",
     "client.js",
     "cordis.patch.yml",
+    "locale/zh.json",
+    "locale/en.json",
     "icon.svg",
     "README.md",
     "LICENSE"

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Computer Control",
+    "description": "Let the AI operate this machine's desktop directly (native Cua Driver SDK). One master switch \"Allow AI to control the computer\": on = full-permission sessions execute directly, restricted sessions prompt per call; off = the AI can never control the computer. Turning it on requires browser credentials (human only); the AI cannot enable it itself."
+  }
+}

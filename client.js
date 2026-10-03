@@ -139,7 +139,7 @@ window.__ModuleLoader__.load({
         React.createElement(
           'div',
           { style: { marginBottom: 12, fontSize: 12, opacity: 0.75, lineHeight: 1.6 } },
-          'Computer Use 让 AI 直接操作本机桌面。开启后：完全权限会话可直接执行；',
+          '控制电脑让 AI 直接操作本机桌面。开启后：完全权限会话可直接执行；',
           '受限权限（工作区读写 / 只读）会话每次控制电脑都会弹出审批卡向你逐次确认。',
           '关闭后：AI 在任何情况下都不能操控电脑（工具整体卸载）。',
           '开启只能由你在此页面完成（需要浏览器登录凭证，AI 无法自行开启）；',
@@ -232,7 +232,7 @@ window.__ModuleLoader__.load({
         ctx.effect(() => ctx.slots.inject(
           'settings.section',
           () => ctx.slots.register(
-            { name: 'settings.section', id: 'destinywind-computer-user', order: SECTION_ORDER, label: 'Computer Use' },
+            { name: 'settings.section', id: 'destinywind-computer-user', order: SECTION_ORDER, label: '控制电脑' },
             ComputerUseSettingsPage,
           ),
         ), 'dsh-destinywind-computer-user: settings section slot');

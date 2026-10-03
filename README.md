@@ -4,7 +4,7 @@
 直接操作你的电脑桌面 —— 截屏、移动鼠标、点击、打字、管理窗口等
 **56 个桌面工具**，底层是原生 [Cua Driver SDK](https://github.com/trycua/cua)。
 
-同时在 Web 设置页提供「Computer Use」栏目：**一个总开关**，决定 AI 能不能用
+同时在 Web 设置页提供「控制电脑」栏目：**一个总开关**，决定 AI 能不能用
 这些能力。设计的核心目标：
 
 > **开关关 = AI 在任何情况下都不能操控电脑；开关开 = 也只有你能打开它。**
@@ -33,7 +33,7 @@
 dsh install https://github.com/rickwindman/dsh-destinywind-computer-user
 ```
 
-安装后重启 DSH，打开 Web 设置页 → 「Computer Use」栏目即可看到开关。
+安装后重启 DSH，打开 Web 设置页 → 「控制电脑」栏目即可看到开关。
 
 **要求**：Node.js ≥ 22.5；Windows / macOS（Cua Driver 支持的平台）。
 
@@ -92,7 +92,7 @@ dsh install https://github.com/rickwindman/dsh-destinywind-computer-user
 ## 🖥️ 使用
 
 1. 安装并重启 DSH；
-2. 打开 Web 设置页 → 「Computer Use」→ 打开「允许 AI 控制电脑」
+2. 打开 Web 设置页 → 「控制电脑」→ 打开「允许 AI 控制电脑」
    （**这一步必须由你在浏览器里完成**）；
 3. 按你给的会话权限等级工作：
    - 完全权限会话里，AI 可直接调用 `computer_use__*` 工具；
@@ -180,6 +180,7 @@ rootkit、有管理员权限的恶意进程）不在防护范围内。
 
 | 版本 | 要点 |
 | --- | --- |
+| v2.1.3 | 界面更名：设置页栏目与插件页显示统一为「控制电脑」（新增 locale/zh.json + locale/en.json）；系统提示与错误消息里的导航指引同步 |
 | v2.1.2 | 审核修复：base64url padding 计算（%4==0 多补 4 个 `=`）对齐宿主逐位实现；cookie 密钥强制 32 字节校验（对齐宿主 canonicalSecret）；驱动加载失败后重试成功仍显示旧错误的设置页状态；落盘失败如实返回 409（不再伪装 200）；413 判定改用结构化标记；权限文件 mac 比对升级 timingSafeEqual；测试 33 → 36 项 |
 | v2.1.1 | 修复 #1（AI 关闭后 humanGate 诚实化）与 #2（坏 JSON 返回 400 不再 500） |
 | v2.1.0 | 「不允许 AI 自行打开开关」：开启需浏览器登录凭证（HttpOnly cookie），AI 一律 403；关闭保持自由；`humanGate` 诊断字段；79 项离线契约测试 |
