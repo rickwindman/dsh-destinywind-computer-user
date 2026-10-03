@@ -164,6 +164,7 @@ window.__ModuleLoader__.load({
                   padding: '2px 8px',
                   borderRadius: 6,
                   background: 'var(--dsh-surface, #161b22)',
+                  color: '#e6edf3',
                   border: '1px solid var(--dsh-border, #30363d)',
                   opacity: group.enabled ? 1 : 0.5,
                 },
